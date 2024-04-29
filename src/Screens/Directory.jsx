@@ -1,4 +1,3 @@
-import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,10 +13,12 @@ import {
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 import LoadingPage from './LoadingPage';
+import CustomDropDown from '../component/CustomDropDown';
 
 import { IMAGE_URL } from '@env';
 import api from '../Utils/api';
-import CustomDropDown from '../component/CustomDropDown';
+import NoDataFound from './NoDataFound';
+
 const Directory = ({ navigation }) => {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +28,7 @@ const Directory = ({ navigation }) => {
     const [options, setOptions] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const { t } = useTranslation();
+    console.log(dataFound, `dataFound`)
     useEffect(() => {
         fetchOptions();
     }, []);
@@ -55,14 +57,15 @@ const Directory = ({ navigation }) => {
                     response = await api.get('/user-list');
 
                 }
-
+                console.log(response.data, 'response.data')
                 if (response.status === 200) {
                     setIsLoading(true);
                     const data = response.data;
-                    console.log(data.length === 0)
+                    console.log(data.length, 'length')
                     if (data.length === 0) {
                         setDataFound(true)
                     } else {
+                        setDataFound(false)
                         setUsers(data);
                         setIsLoading(false);
                     }
@@ -80,6 +83,10 @@ const Directory = ({ navigation }) => {
         fetchData();
     }, [searchValue]);
 
+    const getSelectedvalue = (selectedVillage) => {
+        setSearchValue(selectedVillage);
+    }
+
     const handleUserSelect = userId => {
         navigation.navigate('FamilyList', { userId: userId });
     };
@@ -95,14 +102,9 @@ const Directory = ({ navigation }) => {
     if (isLoading) {
         return <LoadingPage />;
     }
-    if (dataFound) {
-        return <View style={styles.blankcontainer}>
-            <Text style={styles.blank}>{t('nodatafound')}</Text>
-        </View>;
-    }
 
-    const renderUserItem = ({ item }) => {
-        return (<>
+    const renderUserItem = ({ item }) => (
+        <>
             <Pressable onPress={() => handleUserSelect(item._id)}>
                 <View style={styles.userItem}>
                     <TouchableOpacity onPress={() => handleImageClick(item?.photo)}>
@@ -144,7 +146,8 @@ const Directory = ({ navigation }) => {
                                 styles.userName
                             }>{`${item.firstname} ${item.middlename} ${item.lastname}`}</Text>
                         <Text style={styles.userMobile}>
-                            <Text style={{ fontWeight: 'bold' }}>City:</Text> {item.city}
+                            <Text style={{ fontWeight: 'bold' }}>{t('village')} </Text>
+                            {item.locationsData.length > 0 ? item.locationsData[0].village : ""}
                         </Text>
                     </View>
                     <View>
@@ -156,41 +159,26 @@ const Directory = ({ navigation }) => {
                     </View>
                 </View>
             </Pressable>
-        </>)
-    };
-
-    const getSelectedvalue = (selectedVillage) => {
-        setSearchValue(selectedVillage);
-    }
+        </>
+    );
 
     return (
         <ImageBackground source={require('../assets/bg3.jpg')} style={styles.container}>
             <View style={styles.inputContainer}>
                 <CustomDropDown selectedVillage={searchValue} selectItems={options} accessibilityLabel="Select Village" placeholder="Select Village" selctedValue={getSelectedvalue} />
-                {/*  <Picker
-          selectedValue={searchValue}
-          onValueChange={itemValue => setSearchValue(itemValue)}
-          style={styles.input}
-          dropdownIconColor="gray"
-          mode="dropdown">
-          <Picker.Item label={t('allvillages')} value="" />
-
-          {options.map(option => (
-            <Picker.Item
-              key={option._id}
-              label={option.village}
-              value={option._id}
-            />
-          ))}
-        </Picker> */}
             </View>
+            {dataFound ? (
+                <NoDataFound />
+            ) : (
+                <FlatList
+                    data={users}
+                    renderItem={renderUserItem}
+                    keyExtractor={item => item._id}
+                    contentContainerStyle={styles.userList}
+                />
+            )}
 
-            <FlatList
-                data={users}
-                renderItem={renderUserItem}
-                keyExtractor={item => item._id}
-                contentContainerStyle={styles.userList}
-            />
+
         </ImageBackground>
     );
 };

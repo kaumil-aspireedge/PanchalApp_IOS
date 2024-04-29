@@ -1,4 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     FlatList,
     ImageBackground,
@@ -6,23 +8,39 @@ import {
     Text,
     View
 } from 'react-native';
-import api from '../Utils/api';
-
-import { useTranslation } from 'react-i18next';
 import Fontisto from 'react-native-vector-icons/dist/Fontisto';
+import api from '../Utils/api';
+import i18n from '../context/i18n';
 import LoadingPage from './LoadingPage';
+import NoDataFound from './NoDataFound';
 
-const Villages = ({ navigation }) => {
+const Villages = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [villagesData, setVillagesData] = useState([]);
+    const [dataFound, setDataFound] = useState(false);
     const { t } = useTranslation();
+    const [language, setLanguage] = useState('');
 
     useEffect(() => {
+        getSelectedLanguage()
         fetchVillagesData();
     }, []);
 
-
+    const getSelectedLanguage = async () => {
+        try {
+            const storedLanguage = await AsyncStorage.getItem('selectedLanguage');
+            if (storedLanguage) {
+                i18n.changeLanguage(storedLanguage).catch((error) => {
+                    console.error('Error changing language:', error);
+                });
+                console.log(storedLanguage, "storedLanguage")
+                setLanguage(storedLanguage);
+            }
+        } catch (error) {
+            console.error('Error retrieving language:', error);
+        }
+    };
     const fetchVillagesData = async () => {
         try {
             setIsLoading(true);
@@ -36,12 +54,15 @@ const Villages = ({ navigation }) => {
                     } else {
                         setIsLoading(false);
                         console.log('location Request failed with status:', response.status);
-
+                    }
+                    if (response.data.length <= 0) {
+                        setDataFound(true)
+                    } else {
+                        console.log("Data Found")
                     }
                     setIsLoading(false);
                 })
                 .catch((error) => {
-                    // Handle error
                     console.error(error, 'Handle error');
                 });
 
@@ -50,27 +71,52 @@ const Villages = ({ navigation }) => {
             console.error('An error occurred in location:', error);
         }
     };
+    const predefinedColors = ['#f0c2e7', '#f7d5ee', '#ebdac3', '#bdbdf0', '#c8e6cc', '#d5f7f1', '#f7f1d5']
+
+    const getPredefinedColor = index => {
+        return predefinedColors[index % predefinedColors.length];
+    };
+
     const renderItem = data => {
+        const villageName = language === 'en' ? data.item.villageE : data.item.villageG;
+        const colorIndex = data.index % predefinedColors.length;
+        const predefinedColor = getPredefinedColor(colorIndex);
         return (
-            <View key={data.index}>
-                <View style={styles.box}>
-                    <Fontisto name="holiday-village" color="#333" size={17} />
-                    <Text style={styles.boxText}>{data.item.village}</Text>
+            <View key={data.index}
+                style={{
+                    width: "32%", height: 100, backgroundColor: predefinedColor, elevation: 7,
+                    padding: 5,
+                    borderRadius: 10,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    shadowColor: 'black',
+                }}>
+                <View style={styles.box} >
+                    <Fontisto name="holiday-village" color="#333" size={18} />
+                    <Text style={styles.boxText}>{villageName}</Text>
                 </View>
             </View>
         );
     };
 
+    if (dataFound) {
+        return (
+            <NoDataFound />
+        )
+    }
     return (
-        <ImageBackground source={require('../assets/bg3.jpg')} style={styles.container}>
+        <ImageBackground source={require('../assets/bg3.jpg')}>
             {isLoading ? (
                 <LoadingPage />
             ) : villagesData && villagesData.length ? (
-                <View style={{ width: '100%' }}>
+                <View>
                     <FlatList
                         data={villagesData}
                         renderItem={renderItem}
-                        contentContainerStyle={styles.villageList}
+                        numColumns={3}
+                        columnWrapperStyle={[{ justifyContent: 'space-around', gap: 10 }, styles.container]}
+                        style={{ width: '100%' }}
                     />
                 </View>
             ) : (
@@ -84,30 +130,36 @@ const Villages = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        // backgroundColor: '#dae4f0',
-        width: '100%',
+        padding: 10,
+        paddingBottom: 0,
     },
-
+    text: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'black',
+    },
+    text1: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'black',
+    },
     box: {
-        backgroundColor: '#fff',
-        padding: 8,
-        marginVertical: 5,
+        // backgroundColor: '#fff',
+        padding: 5,
         borderRadius: 6,
-        shadowColor: 'black',
-        elevation: 5,
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
-        gap: 15,
     },
-
+    villagesCard: {
+        backgroundColor: 'white',
+        width: '100%',
+        padding: 10,
+    },
     boxText: {
         fontSize: 18,
         fontWeight: '600',
-        color: 'black',
         paddingVertical: 7,
+        color: 'black'
     },
 
     villageList: {

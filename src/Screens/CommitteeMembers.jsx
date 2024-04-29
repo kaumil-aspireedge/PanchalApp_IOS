@@ -11,10 +11,12 @@ import Fontisto from 'react-native-vector-icons/dist/Fontisto';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 import api from '../Utils/api';
 import LoadingPage from './LoadingPage';
+import NoDataFound from './NoDataFound';
 
 const CommitteeMembers = () => {
     const [CommitteeData, setCommitteeData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [dataFound, setDataFound] = useState(false);
 
     useEffect(() => {
         fetchAboutUs();
@@ -29,6 +31,11 @@ const CommitteeMembers = () => {
                 const data = response.data;
                 if (data) {
                     setCommitteeData(data);
+                }
+                if (data.length === 0) {
+                    setDataFound(true)
+                } else {
+                    console.log("error committee members")
                 }
                 setIsLoading(false);
             } else {
@@ -45,6 +52,12 @@ const CommitteeMembers = () => {
     const handleCall = phoneNumber => {
         Linking.openURL(`tel:${phoneNumber}`);
     };
+
+    if (dataFound) {
+        return (
+            <NoDataFound />
+        )
+    }
 
     const renderCommitteeMembers = ({ item }) => (
         <View style={styles.MemberContainer}>

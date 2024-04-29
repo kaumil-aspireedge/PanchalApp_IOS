@@ -14,9 +14,9 @@ import {
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 import LoadingPage from './LoadingPage';
-
 import { IMAGE_URL } from '@env';
 import { useTranslation } from 'react-i18next';
+import NoDataFound from './NoDataFound';
 import api from '../Utils/api';
 
 const SearchDirectory = ({ navigation }) => {
@@ -26,8 +26,6 @@ const SearchDirectory = ({ navigation }) => {
     const { t } = useTranslation();
     const [modalVisible, setModalVisible] = useState(false);
     const [image, setImage] = useState(null);
-
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,7 +37,6 @@ const SearchDirectory = ({ navigation }) => {
                 } else {
                     response = await api.get('/user-list');
                 }
-
                 if (response.status === 200) {
                     setIsLoading(true);
                     const data = response.data;
@@ -55,7 +52,6 @@ const SearchDirectory = ({ navigation }) => {
                 setIsLoading(false);
             }
         };
-
         fetchData();
     }, [searchValue]);
 
@@ -72,65 +68,64 @@ const SearchDirectory = ({ navigation }) => {
         navigation.navigate('FamilyList', { userId: userId });
     };
 
-    const renderUserItem = ({ item }) => {
-        console.log("itemitem", item)
-        return (
-            <>
-                <Pressable onPress={() => handleUserSelect(item._id)}>
-                    <View style={styles.userItem}>
-                        <TouchableOpacity onPress={() => handleImageClick(item?.photo)}>
-                            <View style={styles.userImageContainer}>
-                                {item?.photo ? (
-                                    <Image
-                                        source={{ uri: `${IMAGE_URL}/${item?.photo}` }}
-                                        alt="Profile"
-                                        style={styles.userImage}
-                                        resizeMode="cover"
-                                    />
-                                ) : (
-                                    <Image
-                                        style={styles.userImage}
-                                        source={require('../assets/3135715.png')}
-                                        alt="profile"
-                                        resizeMode="cover"
-                                    />
-                                )}
-                            </View>
-                        </TouchableOpacity>
-                        <Modal visible={modalVisible} transparent={true} onRequestClose={closeModal}>
-                            <View style={styles.modalContainer}>
-                                <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                                    <Text style={styles.closeButtonText}>Close</Text>
-                                </TouchableOpacity>
-
+    const renderUserItem = ({ item }) => (
+        <>
+            <Pressable onPress={() => handleUserSelect(item._id)}>
+                <View style={styles.userItem}>
+                    <TouchableOpacity onPress={() => handleImageClick(item?.photo)}>
+                        <View style={styles.userImageContainer}>
+                            {item?.photo ? (
                                 <Image
-                                    source={{ uri: `${IMAGE_URL}/${image}` }}
-                                    alt="Full Image"
-                                    style={styles.fullImage}
-                                    resizeMode="contain"
+                                    source={{ uri: `${IMAGE_URL}/${item?.photo}` }}
+                                    alt="Profile"
+                                    style={styles.userImage}
+                                    resizeMode="cover"
                                 />
-                            </View>
-                        </Modal>
-                        <View style={styles.userInfoContainer}>
-                            <Text style={styles.userName}>
-                                {item?.firstname} {item?.middlename} {item?.lastname}
-                            </Text>
-                            <View style={styles.mobileContainer}>
-                                <Text style={styles.city}>{item?.city}</Text>
-                            </View>
+                            ) : (
+                                <Image
+                                    style={styles.userImage}
+                                    source={require('../assets/3135715.png')}
+                                    alt="profile"
+                                    resizeMode="cover"
+                                />
+                            )}
                         </View>
-                        <View style={{ flexBasis: '10%' }}>
-                            <MaterialCommunityIcons
-                                name="chevron-right"
-                                size={30}
-                                color="#555"
+                    </TouchableOpacity>
+                    <Modal visible={modalVisible} transparent={true} onRequestClose={closeModal}>
+                        <View style={styles.modalContainer}>
+                            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                                <Text style={styles.closeButtonText}>Close</Text>
+                            </TouchableOpacity>
+                            <Image
+                                source={{ uri: `${IMAGE_URL}/${image}` }}
+                                alt="Full Image"
+                                style={styles.fullImage}
+                                resizeMode="contain"
                             />
                         </View>
+                    </Modal>
+                    <View style={styles.userInfoContainer}>
+                        <Text style={styles.userName}>
+                            {item?.firstname} {item?.middlename} {item?.lastname}
+                        </Text>
+                        <View style={styles.mobileContainer}>
+                            <Text style={styles.userMobile}>
+                                <Text style={{ fontWeight: 'bold' }}>{t('village')} </Text>
+                                {item.locationsData.length > 0 ? item.locationsData[0].village : ""}
+                            </Text>
+                        </View>
                     </View>
-                </Pressable>
-            </>
-        )
-    };
+                    <View style={{ flexBasis: '10%' }}>
+                        <MaterialCommunityIcons
+                            name="chevron-right"
+                            size={30}
+                            color="#555"
+                        />
+                    </View>
+                </View>
+            </Pressable>
+        </>
+    );
 
     return (
         <ImageBackground source={require('../assets/bg3.jpg')}>
@@ -165,12 +160,7 @@ const SearchDirectory = ({ navigation }) => {
                     />
                 ) : (
                     <View style={styles.blankcontainer}>
-                        <Image
-                            source={require('../assets/EmptySearch.png')}
-                            alt="Empty"
-                            style={styles.EmptySearchImage}
-                        />
-                        <Text style={styles.blank}>{t('nosearchdatafound')}</Text>
+                        <NoDataFound />
                     </View>
                 )}
             </View>
@@ -180,7 +170,6 @@ const SearchDirectory = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: {
-        // backgroundColor: '#dae4f0',
         height: '100%',
         width: '100%',
     },
@@ -188,10 +177,10 @@ const styles = StyleSheet.create({
     searchContainer: {
         display: 'flex',
         flexDirection: 'row',
-        margin: '5%',
+        margin: '6%',
         elevation: 5,
         backgroundColor: "#fff",
-        paddingHorizontal: 2,
+        paddingHorizontal: 3,
         borderRadius: 50,
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -200,7 +189,6 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         color: '#000',
-        paddingHorizontal: 10,
         height: 45,
     },
 
@@ -265,7 +253,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
 
-    city: {
+    userMobile: {
         fontSize: 14,
         color: '#666',
         paddingHorizontal: 5,

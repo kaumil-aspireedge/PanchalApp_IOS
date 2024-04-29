@@ -118,7 +118,7 @@ export default function LoginScreen({ navigation }) {
               />
             </View>
 
-            <View style={[styles.containerBox, { ...((Platform.OS === "ios") && { height: 280, shadowOpacity: 0.2, shadowOffset: { "width": 0, "height": 2 } }) }]}>
+            <View style={[styles.containerBox, { ...((Platform.OS === "ios") && { height: 300, shadowOpacity: 0.2, shadowOffset: { "width": 0, "height": 2 } }) }]}>
               <Text style={styles.title}>{t('entermobilenumberandpassword')}</Text>
               <View style={styles.inputGroup}>
                 <View style={styles.inputView}>
@@ -144,13 +144,13 @@ export default function LoginScreen({ navigation }) {
                   {passwordError && <Text style={styles.error}>{passwordError}</Text>}
                 </View>
               </View>
-              {/* <TouchableOpacity
+              <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.forgotParent}
                 onPress={() => navigation.navigate('ForgotPassword')}
               >
                 <Text style={styles.forgotText}>Forgot password?</Text>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.loginBtn, { ...((Platform.OS === "ios") && { marginTop: "10%", shadowOpacity: 0.2, shadowOffset: { "width": 0, "height": 2 } }) }]}
                 onPress={handleLogin}

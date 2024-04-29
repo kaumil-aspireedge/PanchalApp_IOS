@@ -1,19 +1,13 @@
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, StyleSheet, Image, Text, View, Alert, TouchableOpacity, ImageBackground } from 'react-native';
-import LoadingPage from './LoadingPage';
-import api from '../Utils/api';
 import { IMAGE_URL } from '@env';
-
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-
-const cardHeight = 180;
-const padding = 10;
-const offset = cardHeight + padding;
+import { FlatList, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import api from '../Utils/api';
+import LoadingPage from './LoadingPage';
+import NoDataFound from './NoDataFound';
 
 export default function NewsPage({ navigation }) {
-    const scrollY = useRef(new Animated.Value(0)).current;
     const [isLoading, setIsLoading] = useState(false);
     const [dataFound, setDataFound] = useState(false);
     const [newsData, setNewsData] = useState([]);
@@ -22,7 +16,6 @@ export default function NewsPage({ navigation }) {
     useEffect(() => {
         fetchNewsData();
     }, []);
-
 
     const fetchNewsData = async () => {
         try {
@@ -38,11 +31,9 @@ export default function NewsPage({ navigation }) {
                             setNewsData(data);
                             setIsLoading(false);
                         }
-
                     } else {
                         setIsLoading(false);
                         console.log('location Request failed with status:', response.status);
-
                     }
                     setIsLoading(false);
                 })
@@ -67,7 +58,7 @@ export default function NewsPage({ navigation }) {
         const ampm = hours >= 12 ? 'PM' : 'AM';
 
         hours %= 12;
-        hours = hours || 12; // Handle midnight (12:00 AM)
+        hours = hours || 12;
 
         minutes = minutes < 10 ? `0${minutes}` : minutes;
 
@@ -84,12 +75,8 @@ export default function NewsPage({ navigation }) {
     function addEllipsisAfterTenWords(text) {
         let words = text.split(' ');
 
-        // Check if the number of words is more than 10
         if (words.length > 15) {
-            // Remove words after the 10th word
             words = words.slice(0, 15);
-
-            // Add ellipsis
             words[14] += '...';
         }
 
@@ -102,10 +89,11 @@ export default function NewsPage({ navigation }) {
         return <LoadingPage />;
     }
     if (dataFound) {
-        return <View style={styles.blankcontainer}>
-            <Text style={styles.blank}>{t('nodatafound')}</Text>
-        </View>;
+        return (
+            <NoDataFound />
+        )
     }
+
     return (
         <ImageBackground source={require('../assets/bg3.jpg')} style={{ flex: 1 }} resizeMode="cover" >
             <View style={styles.container}>
@@ -114,13 +102,10 @@ export default function NewsPage({ navigation }) {
                         data={newsData}
                         keyExtractor={item => item._id.toString()}
                         renderItem={({ item }) => {
-                            console.log("")
                             return (
                                 <TouchableOpacity onPress={() => NewsDetails(item)} activeOpacity={0.9} style={styles.subContainer}>
                                     <View style={styles.card}>
                                         <View style={styles.flexImage}>
-
-
                                             <View style={styles.cardImage}>
                                                 <Image width={100} height={100} source={{ uri: `${IMAGE_URL}/${item?.image}` }} />
                                             </View>

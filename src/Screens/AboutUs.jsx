@@ -1,11 +1,15 @@
-import { StyleSheet, ImageBackground } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import { ImageBackground, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import LoadingPage from "./LoadingPage";
 import api from "../Utils/api";
-const AboutUs = ({ navigation }) => {
+import LoadingPage from "./LoadingPage";
+import NoDataFound from './NoDataFound';
+
+const AboutUs = () => {
+
     const [aboutUs, setaboutUs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [dataFound, setDataFound] = useState(false);
 
     useEffect(() => {
         fetchAboutUs();
@@ -24,6 +28,11 @@ const AboutUs = ({ navigation }) => {
                 console.log('aboutus Request failed with status:', response.status);
                 setIsLoading(false);
             }
+            if (response.data.length === 0) {
+                setDataFound(true)
+            } else {
+                console.log("error about us")
+            }
             setIsLoading(false);
         } catch (error) {
             console.error('An error occurred:', error);
@@ -41,12 +50,19 @@ const AboutUs = ({ navigation }) => {
     </style>
   `;
     console.log(aboutUs, " :::aboutUs")
+
+    if (dataFound) {
+        return (
+            <NoDataFound />
+        )
+    }
+
     return (
         <ImageBackground source={require('../assets/bg3.jpg')} style={styles.container}>
             {isLoading ? (
                 <LoadingPage />
             ) : (
-                aboutUs.map(item => (
+                aboutUs.length > 0 && aboutUs.map(item => (
                     <WebView
                         key={item._id}
                         source={{
@@ -64,7 +80,6 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         height: '100%',
-        // backgroundColor: '#dae4f0',
     },
     webViewContent: {
         width: '100%',
